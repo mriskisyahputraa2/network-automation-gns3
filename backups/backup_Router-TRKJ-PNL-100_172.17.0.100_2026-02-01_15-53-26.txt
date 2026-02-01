@@ -1,0 +1,80 @@
+=== BACKUP Router-TRKJ-PNL-100 (172.17.0.100) ===
+Tanggal: 2026-02-01_15-53-26
+
+--- [LINUX NETWORK CONFIG] ---
+#
+# This is a sample network config, please uncomment lines to configure the network
+#
+
+# Uncomment this line to load custom interface files
+# source /etc/network/interfaces.d/*
+
+# Static config for eth0
+#auto eth0
+#iface eth0 inet static
+#	address 192.168.0.2
+#	netmask 255.255.255.0
+#	gateway 192.168.0.1
+#	up echo nameserver 192.168.0.1 > /etc/resolv.conf
+
+# DHCP config for eth0
+#auto eth0
+#iface eth0 inet dhcp
+#	hostname Router-FRR-Otomasi-1
+
+# Static config for eth1
+#auto eth1
+#iface eth1 inet static
+#	address 192.168.1.2
+#	netmask 255.255.255.0
+#	gateway 192.168.1.1
+#	up echo nameserver 192.168.1.1 > /etc/resolv.conf
+
+# DHCP config for eth1
+#auto eth1
+#iface eth1 inet dhcp
+#	hostname Router-FRR-Otomasi-1
+
+# Static config for eth2
+#auto eth2
+#iface eth2 inet static
+#	address 192.168.2.2
+#	netmask 255.255.255.0
+#	gateway 192.168.2.1
+#	up echo nameserver 192.168.2.1 > /etc/resolv.conf
+
+# DHCP config for eth2
+#auto eth2
+#iface eth2 inet dhcp
+#	hostname Router-FRR-Otomasi-1
+
+# Static config for eth3
+#auto eth3
+#iface eth3 inet static
+#	address 192.168.3.2
+#	netmask 255.255.255.0
+#	gateway 192.168.3.1
+#	up echo nameserver 192.168.3.1 > /etc/resolv.conf
+
+# DHCP config for eth3
+#auto eth3
+#iface eth3 inet dhcp
+#	hostname Router-FRR-Otomasi-1
+
+--- [FRR ROUTING CONFIG] ---
+% Can't open configuration file /etc/frr/vtysh.conf due to 'No such file or directory'.
+Building configuration...
+
+Current configuration:
+!
+frr version 8.4_git
+frr defaults traditional
+hostname Router-FRR-Otomasi-1
+no ipv6 forwarding
+hostname Router-TRKJ-PNL-100
+!
+interface eth0
+ ip address 172.17.0.100/16
+exit
+!
+end

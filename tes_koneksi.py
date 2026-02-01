@@ -2,63 +2,62 @@ from netmiko import ConnectHandler
 import time
 
 # 1. Konfigurasi Akses Router (Alpine FRR)
-# Pastikan IP dan password sesuai dengan yang kamu buat di GNS3
 router_alpine = {
     'device_type': 'linux',
     'host': '172.17.0.100',
     'username': 'root',
-    'password': 'admin123', # GANTI DENGAN PASSWORD KAMU
+    'password': '1', # GANTI SESUAI PASSWORD YANG KAMU BUAT
     'port': 22,
 }
 
 def jalankan_otomasi():
-    new_hostname = "Router-Otomasi-Riski"
+    new_hostname = "RizkiCoding"
     
     try:
         print(f"🚀 Memulai koneksi ke {router_alpine['host']}...")
         
-        # Membuka koneksi menggunakan context manager (otomatis close)
+        # Membuka koneksi
         with ConnectHandler(**router_alpine) as ssh:
             print("✅ Login Berhasil!")
-            print("-" * 40)
+            print("-" * 45)
 
             # --- BAGIAN 1: MENGUBAH HOSTNAME DI LEVEL SISTEM (ALPINE) ---
             print(f"📡 Mengubah System Hostname menjadi: {new_hostname}")
-            ssh.send_command(f"echo '{new_hostname}' > /etc/hostname")
-            ssh.send_command(f"hostname {new_hostname}")
+            
+            # Kita gunakan expect_string=r'#' agar Netmiko hanya mencari tanda pagar,
+            # sehingga tidak error saat nama router di depannya berubah.
+            ssh.send_command(f"echo '{new_hostname}' > /etc/hostname", expect_string=r'#')
+            ssh.send_command(f"hostname {new_hostname}", expect_string=r'#')
 
             # --- BAGIAN 2: MENGUBAH HOSTNAME DI LEVEL ROUTING (FRR/VTYSH) ---
             print("⚙️  Mengonfigurasi FRR via vtysh...")
-            # Mengirimkan rangkaian perintah konfigurasi
-            cmd_vtysh = [
-                f'vtysh -c "conf t" -c "hostname {new_hostname}"',
-                'vtysh -c "write mem"'
-            ]
-            for cmd in cmd_vtysh:
-                ssh.send_command(cmd)
+            # Menjalankan perintah vtysh secara langsung dari shell Linux
+            ssh.send_command(f'vtysh -c "conf t" -c "hostname {new_hostname}"', expect_string=r'#')
+            ssh.send_command('vtysh -c "write mem"', expect_string=r'#')
 
-            # Memberi jeda sebentar agar sistem memproses
+            # Beri jeda 1 detik agar sistem sinkron
             time.sleep(1)
 
             # --- BAGIAN 3: VERIFIKASI AKHIR ---
-            print("-" * 40)
+            print("-" * 45)
             print("🔍 HASIL VERIFIKASI:")
             
-            # Cek nama di level OS
-            check_os = ssh.send_command("hostname")
-            # Cek nama di level Config FRR
-            check_frr = ssh.send_command('vtysh -c "show running-config" | grep hostname')
+            # Cek identitas di level OS dan Config FRR
+            # Gunakan expect_string lagi karena prompt sudah berubah permanen
+            check_os = ssh.send_command("hostname", expect_string=r'#')
+            check_frr = ssh.send_command('vtysh -c "show running-config" | grep hostname', expect_string=r'#')
 
             print(f"   > OS Hostname  : {check_os}")
             print(f"   > FRR Config   : {check_frr}")
             
-            if new_hostname in check_os and new_hostname in check_frr:
+            if new_hostname in check_os:
                 print("\n✨ SEMUA BERHASIL DIUBAH! ✨")
             else:
-                print("\n⚠️  Ada bagian yang belum berubah, cek kembali perintahnya.")
+                print("\n⚠️  Cek kembali, sepertinya ada konfigurasi yang belum sinkron.")
 
     except Exception as e:
-        print(f"\n❌ ERROR: {e}")
+        # Menampilkan pesan error yang lebih bersih
+        print(f"\n❌ TERJADI KESALAHAN: {e}")
 
 if __name__ == "__main__":
     jalankan_otomasi()
